@@ -1,2 +1,2 @@
-# state_machine_node
+# state_machine
 actionlib based state machine
