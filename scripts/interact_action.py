@@ -9,6 +9,7 @@ import roslib
 roslib.load_manifest('state_machine')
 from actionlib import *
 
+import rosplan_interface as planner
 import state_machine.msg
 
 class InteractServer(object):
@@ -21,6 +22,7 @@ class InteractServer(object):
                                           execute_cb=self.execute_cb,
                                           auto_start = False)
         self._server.start()
+	print "Interact Server started"
 
     def execute_cb(self, goal):
         print "interacting"
@@ -34,13 +36,18 @@ class InteractServer(object):
         time.sleep(5)
 
         print "done interacting"
-        self._result.action = random.randint(0,2)
+        planner.add_instance('location', 'kitchen')
+        planner.add_instance('location', 'office')
+        planner.add_predicate('robotat', x='kitchen')
+        self._result.action = [
+          planner.gen_predicate('robotat', x='office')
+        ]
         self._server.set_succeeded(self._result)
 
 
 
 if __name__ == '__main__':
     rospy.init_node('interact_server')
+    planner.init()
     InteractServer(rospy.get_name())
-    print "Interact Server started"
     rospy.spin()

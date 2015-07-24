@@ -1,5 +1,5 @@
 bool interaction
 ---
-int8 action
+rosplan_knowledge_msgs/KnowledgeItem[] action
 ---
 bool isInteracting

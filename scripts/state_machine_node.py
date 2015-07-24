@@ -4,8 +4,6 @@ __author__ = 'daniel'
 
 import traceback
 
-from enum import Enum
-#import task
 
 import rospy
 import roslib
@@ -15,7 +13,7 @@ import actionlib
 from std_msgs.msg import String
 import state_machine.msg
 
-#import rosplan_interface as interface
+import rosplan_interface as interface
 
 class StateTracker(object):
     class State(object):
@@ -69,19 +67,26 @@ class StateTracker(object):
         def enter(self):
             print "entering execute"
             while self.active and len(tasks) > 0:
-                #tasks[0].send()
-                #interface.plan()
+                interface.clear_goals()
+                for goal in tasks[0]:
+                    interface.add_goal(goal)
+                interface.plan()
                 print "executing task"
-                # while True: # rosplan not done yet
-                #     if not self.active:
-                #         return
-                rospy.sleep(5)
-                tasks.pop()
+                rospy.sleep(3)
+		print interface.get_dispatch_status()
+                while not interface.is_done(): # rosplan not done yet
+                    print interface.get_dispatch_status()
+		    if not self.active:
+                        return
+                    rospy.sleep(.1)
+                print "completed task"
+		tasks.pop(0)
             self.active = False
 
         def leave(self):
             print "leaving execute"
-            #interface.clear_goals()
+            interface.cancel()
+            interface.clear_goals()
 
     class Interact(State):
         def enter(self):
@@ -127,7 +132,7 @@ class StateTracker(object):
         self._trigger = rospy.Subscriber("interact_trigger", String, self.update_state);
         self._timer = rospy.Timer(rospy.Duration(5), self.checkup_state)
 
-        self.states = [self.Interact(2, mutable=False),
+        self.states = [self.Interact(2),
                        self.Execute(1),
                        self.Idle(0)]
         self._interact = self.states[0]
@@ -140,6 +145,6 @@ tasks = []
 
 if __name__ == '__main__':
     rospy.init_node('state_machine_node')
-    #interface.init_rosplan()
+    interface.init()
     StateTracker()
     rospy.spin()

@@ -9,6 +9,7 @@ find_package(catkin REQUIRED
     genmsg
     actionlib_msgs
     geometry_msgs
+    rosplan_knowledge_msgs
     std_msgs
     actionlib
 )
@@ -64,7 +65,7 @@ FILES roam.action interact.action
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
-  DEPENDENCIES actionlib_msgs std_msgs geometry_msgs
+  DEPENDENCIES actionlib_msgs std_msgs geometry_msgs rosplan_knowledge_msgs
 )
 
 ###################################
