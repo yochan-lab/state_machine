@@ -89,7 +89,6 @@ catkin_package(
 
 catkin_install_python(PROGRAMS
   scripts/state_machine_node.py
-  scripts/task.py
   scripts/roam_action.py
   scripts/interact_action.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
