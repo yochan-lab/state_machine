@@ -1,0 +1,5 @@
+bool interaction
+---
+int8 action
+---
+bool isInteracting

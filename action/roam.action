@@ -1,0 +1,8 @@
+#Goal
+int8 waypoint
+---
+#Result
+bool made_it
+---
+#Feedback message
+bool there_yet
