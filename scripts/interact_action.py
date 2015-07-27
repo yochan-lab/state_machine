@@ -36,11 +36,8 @@ class InteractServer(object):
         time.sleep(5)
 
         print "done interacting"
-        planner.add_instance('location', 'kitchen')
-        planner.add_instance('location', 'office')
-        planner.add_predicate('robotat', x='kitchen')
         self._result.action = [
-          planner.gen_predicate('robotat', x='office')
+          planner.gen_predicate('robotat', x='entrance')
         ]
         self._server.set_succeeded(self._result)
 
