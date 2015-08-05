@@ -22,7 +22,8 @@ class StateTracker(object):
         def __init__(self, ID, timeout=0.1):
             self._ID = ID
             self._active = False
-            self._timeout = timeout
+            self._timeout_duration = timeout
+            self._timeout = False
 
         def _enter(self):
             self._active = True
@@ -33,7 +34,7 @@ class StateTracker(object):
         def _leave(self):
             self.leave_thread = threading.Thread(target=self.leave)
             self.leave_thread.daemon = True
-            self.timeout_thread = threading.Thread(target=self.wait_for_timout)
+            self.timeout_thread = threading.Thread(target=self.wait_for_timeout)
             self.timeout_thread.daemon = True
             self.leave_thread.start()
             self.timeout_thread.start()
@@ -44,10 +45,12 @@ class StateTracker(object):
         def leave(self):
             raise NotImplementedError
 
-        def wait_for_timout(self):
+        def wait_for_timeout(self):
             self.leave_thread.join()
-            time.sleep(self._timeout)
+            self._timeout = True
             self._active = False
+            time.sleep(self._timeout_duration)
+            self._timeout = False
 
         def get_id(self):
             return self._ID
@@ -56,7 +59,7 @@ class StateTracker(object):
             return self._active
 
         def set_active(self, value):
-            if self._active != value: #only execute if different
+            if self._active != value and self._timeout is False: #only execute if different
                 if value:
                     #self._active = value
                     self._enter()
