@@ -2,8 +2,8 @@
 
 __author__ = 'daniel'
 
-import traceback
-
+#import traceback
+import threading, time
 
 import rospy
 import roslib
@@ -16,17 +16,38 @@ import state_machine.msg
 
 import rosplan_interface as interface
 
+
 class StateTracker(object):
     class State(object):
-        def __init__(self, ID):
+        def __init__(self, ID, timeout=0.1):
             self._ID = ID
             self._active = False
+            self._timeout = timeout
+
+        def _enter(self):
+            self._active = True
+            self.enter_thread = threading.Thread(target=self.enter)
+            self.enter_thread.daemon = True
+            self.enter_thread.start()
+
+        def _leave(self):
+            self.leave_thread = threading.Thread(target=self.leave)
+            self.leave_thread.daemon = True
+            self.timeout_thread = threading.Thread(target=self.wait_for_timout)
+            self.timeout_thread.daemon = True
+            self.leave_thread.start()
+            self.timeout_thread.start()
 
         def enter(self):
             raise NotImplementedError
 
         def leave(self):
             raise NotImplementedError
+
+        def wait_for_timout(self):
+            self.leave_thread.join()
+            time.sleep(self._timeout)
+            self._active = False
 
         def get_id(self):
             return self._ID
@@ -36,8 +57,14 @@ class StateTracker(object):
 
         def set_active(self, value):
             if self._active != value: #only execute if different
-                self._active = value
-                self.enter() if value else self.leave()
+                if value:
+                    #self._active = value
+                    self._enter()
+                    #self.enter()
+                else:
+                    #self.leave()
+                    self._leave()
+                    #self._active = value
 
         active = property(get_active, set_active)
 
@@ -129,10 +156,10 @@ class StateTracker(object):
 
     def __init__(self):
         # self._trigger = rospy.Subscriber("interact_trigger", String, self.update_state);
-        self._trigger = rospy.Subscriber("/label_output", Int32, self.update_state)
+        self._trigger = rospy.Subscriber("/label_output", Int32, self.update_state, queue_size=1)
         self._timer = rospy.Timer(rospy.Duration(5), self.update_state)
 
-        self.states = [self.Interact(2),
+        self.states = [self.Interact(2, timeout=20),
                        self.Execute(1),
                        self.Idle(0)]
         self._interact = self.states[0]
